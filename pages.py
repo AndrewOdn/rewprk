@@ -9,10 +9,35 @@ from datetime import datetime
 import fake_useragent
 import requests
 import re
-from bs4 import BeautifulSoup
 import json
 from pprint import pprint
-
+import psycopg2
+from psycopg2 import Error
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+class Sql_execute:
+    def insert(tab, *data):
+        try:
+            val = ' VALUES (%s'
+            for i in range(1, len(data)):
+                val = val + ',%s'
+            val = val + ')'
+            connection = psycopg2.connect(user="postgres",
+                                          # пароль, который указали при установке PostgreSQL
+                                          password="admin",
+                                          host="127.0.0.1",
+                                          port="5432",
+                                          database="planes")
+            connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+            # Курсор для выполнения операций с базой данных
+            cursor = connection.cursor()
+            cursor.execute("INSERT INTO "+tab+val,(data))
+            connection.commit()
+        except (Exception, Error) as error:
+            print("Ошибка при работе с PostgreSQL", error)
+        finally:
+            if connection:
+                cursor.close()
+                connection.close()
 class Pages():
     def __init__(self, url, referer, cookie):
         self.url=url
